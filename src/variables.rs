@@ -3,9 +3,10 @@ use std::collections::HashMap;
 use smallvec::SmallVec;
 
 use crate::{small_string::SmallString, value::Value};
-
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct VariableIndex(usize);
-
+#[derive(Debug, Default, Clone)]
 pub(crate) struct Variables {
     identifiers: HashMap<SmallString<16>, usize>,
     values: SmallVec<[Value; 4]>,

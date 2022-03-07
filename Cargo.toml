@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies.smallvec]
 version = "1.8.0"
 features = ["const_generics"]
+
+[dependencies.libc]
+version = "0.2.119"

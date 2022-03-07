@@ -2,8 +2,11 @@ use smallvec::SmallVec;
 
 use crate::{function::std::Function, value::Value, variables::VariableIndex};
 
-use super::{token::Operator, ElementIndex};
-
+use super::{
+    token::{Bracket, Operator, Special},
+    ElementIndex,
+};
+#[derive(Debug, Clone)]
 pub(crate) enum Node<T>
 where
     T: Function<T>,

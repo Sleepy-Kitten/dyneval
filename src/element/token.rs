@@ -128,6 +128,7 @@ pub(crate) enum Operator {
 }
 
 impl Operator {
+    #[inline]
     pub(crate) fn weight(&self) -> i16 {
         match self {
             Self::Add => 20,

@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, str::from_utf8_unchecked};
 
 use smallvec::SmallVec;
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SmallString<const LENGTH: usize> {
     vec: SmallVec<[u8; LENGTH]>,
 }

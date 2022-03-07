@@ -1,9 +1,11 @@
+use std::cmp::Ordering;
+
 use smallvec::SmallVec;
 
 use crate::{
     element::{
         node::Node,
-        token::{Special::Comma, TokenKind::*},
+        token::{Special::Comma, TokenKind::*, Literal::*, Identifier::*, Special::*, Token},
         Element, ElementIndex,
     },
     error::Error,
@@ -45,12 +47,14 @@ where
     T: Function<T>,
     [(); T::MAX_ARGS]:,
 {
+    /// lexes the [`Expression`] string into [`Token`]s
     fn to_tokens(&mut self) -> Result<&mut Self, Error> {
         for (index, &chr) in self.string.as_bytes().iter().enumerate() {
             self.storage.push(index, chr)?;
         }
         Ok(self)
     }
+    /// parses the [`Token`]s into [`Node`]s, containing actual data
     fn to_nodes(&mut self) -> Result<&mut Self, Error> {
         let mut namespaces = SmallVec::<[&str; 4]>::new();
         for element in &mut self.storage.elements {
@@ -67,8 +71,8 @@ where
                     Operator(o) => {
                         *element = Element::Node(Node::Instruction {
                             operator: o,
-                            lhs: ElementIndex(0),
-                            rhs: ElementIndex(0),
+                            lhs: ElementIndex::new(0),
+                            rhs: ElementIndex::new(0),
                         })
                     }
                     Identifier(Function) => {
@@ -94,10 +98,12 @@ where
         drop(namespaces);
         Ok(self)
     }
+    /// Set the left and right [`ElementIndex`] for each operator [`Node`]
     fn set_indices(&mut self) -> Result<&mut Self, Error> {
+        // index and weight node with the lowest weight
         let mut lowest_weight = IndexWeight {
             weight: 0,
-            index: ElementIndex(0),
+            index: ElementIndex::new(0),
         };
         let mut bracket_weight = 0;
         let mut iter = self
@@ -105,13 +111,14 @@ where
             .elements
             .iter_mut()
             .enumerate()
-            .map(|(index, element)| (ElementIndex(index), element))
+            .map(|(index, element)| (ElementIndex::new(index), element))
+            // filter out all nodes which are not operator/function nodes
             .filter_map(|(index, element)| match element {
                 Element::Node(node) => match node {
                     Node::Instruction { operator, lhs, rhs } => {
                         // set operand indices to neighbor nodes
-                        *lhs = index - ElementIndex(1);
-                        *rhs = index + ElementIndex(1);
+                        *lhs = index - ElementIndex::new(1);
+                        *rhs = index + ElementIndex::new(1);
                         let weight = operator.weight() + bracket_weight;
                         let info = NodeInfo {
                             index,
@@ -146,19 +153,19 @@ where
                     let ordering = next.weight.cmp(&peek.weight);
 
                     match ordering {
-                        Equal => {
+                        Ordering::Equal => {
                             if let Node::Instruction { lhs, .. } = peek.node {
                                 *lhs = next.index
                             }
                             lowest_weight.assign_lower(peek)
                         }
-                        Greater => {
+                        Ordering::Greater => {
                             if let Node::Instruction { lhs, .. } = peek.node {
                                 *lhs = next.index;
                             }
                             lowest_weight.assign_lower(peek)
                         }
-                        Less => {
+                        Ordering::Less => {
                             if let Node::Instruction { rhs, .. } = next.node {
                                 *rhs = peek.index;
                             }
