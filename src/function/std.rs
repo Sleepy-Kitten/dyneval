@@ -1,14 +1,28 @@
-use crate::{value::Value, error::Error};
-
-pub trait Function<T>
-where
-    T: Function<T>,
-{
-    const NAMESPACE: &'static str;
-    const MAX_ARGS: usize;
-    fn from_string(namespaces: &[&str], identifier: &str) -> Result<T, Error>;
-    fn call(&self, args: &[Value]) -> Result<Value, Error>;
-    fn is_const(&self) -> bool {
-        true
-    }
+use crate::{error::Error, functions, value::Value};
+#[inline]
+fn sqrt(values: [Value; 1]) -> Result<Value, Error> {
+    let value = values[0];
+    let result = match value {
+        Value::Int(int) => (int as f64).sqrt(),
+        Value::Float(float) => float.sqrt(),
+    };
+    Ok(Value::Float(result))
 }
+#[inline]
+fn print(values: [Value; 1]) -> Result<Value, Error> {
+    let value = values[0];
+    println!("{value}");
+    Ok(value)
+}
+/*
+functions!(
+    Std: std;
+    [];
+    [
+        Sqrt: sqrt(1),
+        Print: print(1); false
+        //Log: log(2),
+        //Ln: ln(1),
+        //Abs: abs(1)
+        ]);
+*/

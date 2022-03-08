@@ -7,7 +7,7 @@ use crate::{
         Element,
     },
     error::Error,
-    function::std::Function,
+    function::Function,
 };
 
 use super::ExpressionStorage;

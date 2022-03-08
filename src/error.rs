@@ -8,11 +8,13 @@ pub enum Error {
     InvalidToken,
     InvalidNamespace,
     InvalidArgs,
+    InvalidIndex,
     InvalidVariable,
+    InvalidType,
     NotCompiled,
     AlreadyCompiled,
-    InvalidIndex,
     EmptyExpression,
+    UnknownFunction,
 }
 
 impl From<ParseFloatError> for Error {

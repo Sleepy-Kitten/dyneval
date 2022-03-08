@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub};
 
-use crate::function::std::Function;
+use crate::function::Function;
 
 use self::{node::Node, token::Token};
 

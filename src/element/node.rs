@@ -1,6 +1,6 @@
 use smallvec::SmallVec;
 
-use crate::{function::std::Function, value::Value, variables::VariableIndex};
+use crate::{function::Function, value::Value, variables::VariableIndex};
 
 use super::{
     token::{Bracket, Operator, Special},
