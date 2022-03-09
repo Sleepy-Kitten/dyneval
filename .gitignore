@@ -1,2 +1,4 @@
 /target
 /Cargo.lock
+/dyneval_derive/target
+/dyneval_derive/Cargo.lock

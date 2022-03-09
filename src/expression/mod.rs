@@ -12,7 +12,7 @@ use crate::{
         Element, ElementIndex,
     },
     error::Error,
-    function::Function,
+    library::Library,
     value::Value,
     variables::Variables,
 };
@@ -24,7 +24,7 @@ pub mod parse;
 #[derive(Debug, Clone)]
 pub struct ExpressionStorage<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     elements: Vec<Element<T>>,
@@ -32,7 +32,7 @@ where
 }
 impl<T> Default for ExpressionStorage<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     fn default() -> Self {
@@ -49,7 +49,7 @@ where
 #[derive(Debug, Clone)]
 pub struct Expression<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     /// Original expression string
@@ -61,7 +61,7 @@ where
 }
 impl<T> Default for Expression<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     fn default() -> Self {
@@ -75,7 +75,7 @@ where
 
 impl<T> Expression<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     pub fn new(expression: String) -> Self {

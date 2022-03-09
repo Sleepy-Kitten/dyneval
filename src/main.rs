@@ -2,7 +2,7 @@
 #![feature(try_blocks)]
 use value::Value;
 
-pub mod function;
+pub mod library;
 pub mod value;
 pub mod error;
 pub mod variables;
@@ -17,15 +17,15 @@ mod tests {
         assert_eq!(result, 4);
     }
 }
-fn test_fn(a: i32, b: i32) {
+fn test_fn(a: u32, b: i32) {
     println!("a{a}, b{b}")
 }
 fn main() {
-    let array: [u8; 2] = [1,2];
+    let array: [i8; 2] = [-11,2];
     //let temp = test_fn(access_array!(array, u8, u8));
     let a = TryInto::<i16>::try_into(2_u8);
-    let test: Result<(), std::convert::Infallible> = try {
-        call_with!(array, test_fn, (i32, i32));
+    let test: Result<(), error::Error> = try {
+        call_with!(array, test_fn, (u32, i32));
     };
 
     //call_with!(test_fn, array, i32, i32);

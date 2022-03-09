@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub};
 
-use crate::function::Function;
+use crate::library::Library;
 
 use self::{node::Node, token::Token};
 
@@ -33,7 +33,7 @@ impl Sub for ElementIndex {
 #[derive(Debug, Clone)]
 pub(crate) enum Element<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     Token(Token),

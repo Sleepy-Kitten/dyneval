@@ -1,4 +1,4 @@
-use std::{num::{ParseFloatError, ParseIntError}, array::TryFromSliceError, str::ParseBoolError};
+use std::{num::{ParseFloatError, ParseIntError, TryFromIntError}, array::TryFromSliceError, str::ParseBoolError, convert::Infallible};
 
 #[derive(Debug)]
 pub enum Error {
@@ -36,5 +36,15 @@ impl From<ParseBoolError> for Error {
 impl From<TryFromSliceError> for Error {
     fn from(_: TryFromSliceError) -> Self {
         Self::InvalidArgs
+    }
+}
+impl From<TryFromIntError> for Error {
+    fn from(_: TryFromIntError) -> Self {
+        Self::InvalidArgs
+    }
+}
+impl From<Infallible> for Error {
+    fn from(_: Infallible) -> Self {
+        unreachable!()
     }
 }

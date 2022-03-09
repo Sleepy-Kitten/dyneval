@@ -7,14 +7,14 @@ use crate::{
         Element,
     },
     error::Error,
-    function::Function,
+    library::Library,
 };
 
 use super::ExpressionStorage;
 
 impl<T> ExpressionStorage<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     /// inserts a new token into the storage from kind

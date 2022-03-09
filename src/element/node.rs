@@ -1,6 +1,6 @@
 use smallvec::SmallVec;
 
-use crate::{function::Function, value::Value, variables::VariableIndex};
+use crate::{library::Library, value::Value, variables::VariableIndex};
 
 use super::{
     token::{Bracket, Operator, Special},
@@ -9,7 +9,7 @@ use super::{
 #[derive(Debug, Clone)]
 pub(crate) enum Node<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     Instruction {

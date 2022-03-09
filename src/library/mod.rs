@@ -4,9 +4,9 @@ pub mod std;
 
 use crate::{error::Error, value::Value};
 
-pub trait Function<T>
+pub trait Library<T>
 where
-    T: Function<T>,
+    T: Library<T>,
 {
     const NAMESPACE: &'static str;
     const MAX_ARGS: usize;

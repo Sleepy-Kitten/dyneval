@@ -9,7 +9,7 @@ use crate::{
         Element, ElementIndex,
     },
     error::Error,
-    function::Function,
+    library::Library,
     value::Value,
 };
 
@@ -17,7 +17,7 @@ use super::Expression;
 
 struct NodeInfo<'a, T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     index: ElementIndex,
@@ -32,7 +32,7 @@ struct IndexWeight {
 impl IndexWeight {
     pub fn assign_lower<'a, T>(&mut self, other: &NodeInfo<'a, T>)
     where
-        T: Function<T>,
+        T: Library<T>,
         [(); T::MAX_ARGS]:,
     {
         if self.weight >= other.weight {
@@ -44,7 +44,7 @@ impl IndexWeight {
 
 impl<T> Expression<T>
 where
-    T: Function<T>,
+    T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
     /// lexes the [`Expression`] string into [`Token`]s
@@ -75,9 +75,9 @@ where
                             rhs: ElementIndex::new(0),
                         })
                     }
-                    Identifier(Function) => {
+                    Identifier(Library) => {
                         let identifier = token.slice(&self.string);
-                        let function = <T as Function<T>>::from_string(&namespaces, identifier)?;
+                        let function = <T as Library<T>>::from_string(&namespaces, identifier)?;
                         *element = Element::Node(Node::Function {
                             function,
                             args: SmallVec::new(),
