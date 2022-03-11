@@ -1,7 +1,8 @@
 #![feature(generic_const_exprs)]
 #![feature(try_blocks)]
+extern crate dyneval_derive;
+//use library::std::test_print;
 use value::Value;
-
 pub mod library;
 pub mod value;
 pub mod error;
@@ -27,6 +28,6 @@ fn main() {
     let test: Result<(), error::Error> = try {
         call_with!(array, test_fn, (u32, i32));
     };
-
+    library::std::test_print();
     //call_with!(test_fn, array, i32, i32);
 }

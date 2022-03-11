@@ -1,4 +1,6 @@
 use crate::{error::Error, functions, value::Value};
+
+use dyneval_derive::*;
 #[inline]
 fn sqrt(values: [Value; 1]) -> Result<Value, Error> {
     let value = values[0];
@@ -13,6 +15,16 @@ fn print(values: [Value; 1]) -> Result<Value, Error> {
     let value = values[0];
     println!("{value}");
     Ok(value)
+}
+make_answer!();
+#[dyneval_derive::library]
+pub mod test {
+    fn testy(a: i64) -> crate::value::Value {
+        crate::value::Value::Int(a)
+    }
+    fn uwu(a: f64, b: i64) -> crate::value::Value {
+        todo!()
+    }
 }
 /*
 functions!(

@@ -8,6 +8,9 @@ edition = "2021"
 [features]
 unsafe_eval = []
 
+[dependencies.dyneval_derive]
+path = "dyneval_derive"
+
 [dependencies.smallvec]
 version = "1.8.0"
 features = ["const_generics"]
