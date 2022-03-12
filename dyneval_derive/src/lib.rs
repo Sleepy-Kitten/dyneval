@@ -1,9 +1,13 @@
 extern crate proc_macro;
 
-use std::fmt::Write;
 use proc_macro::TokenStream;
 use quote::{quote, TokenStreamExt};
-use syn::{self, token::{Semi, Brace}, Ident, ItemFn, ItemMod, ItemType, Token};
+use std::fmt::Write;
+use syn::{
+    self,
+    token::{Brace, Semi},
+    Ident, ItemFn, ItemMod, ItemType, Token,
+};
 
 #[proc_macro_attribute]
 pub fn library_from_mod(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -49,7 +53,7 @@ fn library_macro(item: TokenStream) -> TokenStream {
 fn generate_impl(ident: Ident, parts: Vec<Part>) -> TokenStream {
     let mut namespace = ident.clone().to_string();
     if !namespace.is_ascii() {
-        panic!("not ascii name");
+        panic!("non ascii ident");
     }
     namespace
         .get_mut(0..=1)
@@ -60,36 +64,23 @@ fn generate_impl(ident: Ident, parts: Vec<Part>) -> TokenStream {
         Part::Function(function) => function.sig.inputs.len().to_string(),
         Part::Import(ident) => format!("{}::MAX_ARGS", ident.to_string()),
     });
-
-    let mut buffer_stream = quote! {};
-    buffer_stream.append(syn::token::Brace);
-    buffer_stream.append_all( quote! {
-        let mut __internal_temp = 0;
-        let mut __internal_max = 0;
-    });
-    for count in arg_counts {
-        buffer_stream.append_all(quote! {
+    let ifs = arg_counts.map(|count| {
+        quote! {
             __interal_temp = #count;
             if __internal_temp > __internal_max { __internal_max = __internal_temp}
-        });
-    }
-    buffer_stream.append_all(quote! {
-        __internal_max
+        }
     });
-    buffer_stream.append("}".into());
-    /*
-    let mut buffer = String::new();
-    buffer.push_str("{ ");
-    buffer.push_str("let mut __internal_temp = 0; ");
-    buffer.push_str("let mut __internal_max = 0; ");
-    for count in arg_counts {
-        write!(buffer, "__internal_temp = {}; ", count).unwrap();
-        buffer.push_str("if __internal_temp > __internal_max { __internal_max = __internal_temp } ");
+    let max_args = quote! {
+        {
+            let mut __internal_temp = 0;
+            let mut __internal_max = 0;
+            #(#ifs),*
+            __internal_max
+        }
     };
-    buffer.push_str("__internal_max ");
-    buffer.push_str("} ");
-    */
-    buffer_stream.into()
+    let stream = quote! {
+
+    };
 }
 fn impl_library(ident: &Option<syn::Ident>, module: &syn::ItemMod) -> TokenStream {
     let ident = ident
