@@ -1,4 +1,4 @@
-use crate::{error::Error, functions, value::Value};
+use crate::{error::Error, value::Value};
 
 use dyneval_derive::*;
 #[inline]
@@ -16,8 +16,10 @@ fn print(values: [Value; 1]) -> Result<Value, Error> {
     println!("{value}");
     Ok(value)
 }
-make_answer!();
-#[dyneval_derive::library]
+pub enum Test {
+    A
+}
+#[dyneval_derive::library_from_mod]
 pub mod test {
     fn testy(a: i64) -> crate::value::Value {
         crate::value::Value::Int(a)
@@ -25,6 +27,10 @@ pub mod test {
     fn uwu(a: f64, b: i64) -> crate::value::Value {
         todo!()
     }
+}
+pub enum A {
+   a,
+   b 
 }
 /*
 functions!(

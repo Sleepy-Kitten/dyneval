@@ -3,7 +3,7 @@ use smallvec::SmallVec;
 use crate::{library::Library, value::Value, variables::VariableIndex};
 
 use super::{
-    token::{Bracket, Operator, Special},
+    token::{Operator},
     ElementIndex,
 };
 #[derive(Debug, Clone)]

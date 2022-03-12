@@ -5,7 +5,7 @@ use smallvec::SmallVec;
 use crate::{
     element::{
         node::Node,
-        token::{Special::Comma, TokenKind::*, Literal::*, Identifier::*, Special::*, Token},
+        token::{Special::Comma, TokenKind::*, Literal::*, Identifier::*, Special::*},
         Element, ElementIndex,
     },
     error::Error,

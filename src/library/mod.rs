@@ -1,5 +1,3 @@
-#[macro_use]
-pub mod define_macro;
 pub mod std;
 
 use crate::{error::Error, value::Value};

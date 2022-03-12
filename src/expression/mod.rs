@@ -1,25 +1,11 @@
-use std::cmp::Ordering::*;
-
-use smallvec::SmallVec;
-
 use crate::{
-    element::{
-        node::Node,
-        token::{
-            Bracket::*, Identifier::*, Literal::*, Operator::*, Special::*, Token, TokenKind,
-            TokenKind::*,
-        },
-        Element, ElementIndex,
-    },
-    error::Error,
+    element::{Element, ElementIndex},
     library::Library,
-    value::Value,
     variables::Variables,
 };
 
 pub mod lex;
 pub mod parse;
-
 
 #[derive(Debug, Clone)]
 pub struct ExpressionStorage<T>

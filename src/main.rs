@@ -2,7 +2,6 @@
 #![feature(try_blocks)]
 extern crate dyneval_derive;
 //use library::std::test_print;
-use value::Value;
 pub mod library;
 pub mod value;
 pub mod error;
@@ -25,9 +24,6 @@ fn main() {
     let array: [i8; 2] = [-11,2];
     //let temp = test_fn(access_array!(array, u8, u8));
     let a = TryInto::<i16>::try_into(2_u8);
-    let test: Result<(), error::Error> = try {
-        call_with!(array, test_fn, (u32, i32));
-    };
-    library::std::test_print();
+    //library::std::test_print();
     //call_with!(test_fn, array, i32, i32);
 }
