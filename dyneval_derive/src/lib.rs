@@ -6,7 +6,7 @@ use std::fmt::Write;
 use syn::{
     self,
     token::{Brace, Semi},
-    Ident, ItemFn, ItemMod, ItemType, Token,
+    Ident, Item, ItemFn, ItemMod, ItemType, Token,
 };
 
 #[proc_macro_attribute]
@@ -14,6 +14,18 @@ pub fn library_from_mod(attr: TokenStream, item: TokenStream) -> TokenStream {
     let original = item.clone();
     let ident = syn::parse::<Ident>(attr).ok();
     let module = syn::parse::<ItemMod>(item).expect("not a module");
+    let ident = ident.or(Some(module.ident)).unwrap();
+    let content = &module.content.as_ref().expect("empty module").1;
+    let parts = content
+        .iter()
+        .map(|item| match item {
+            Item::Fn(item_fn) => Part::Function(item_fn.to_owned()),
+            Item::Verbatim(tt) => Part::Import(
+                syn::parse::<Ident>(tt.to_owned().into()).expect("not an ident or a function"),
+            ),
+            _ => todo!(),
+        })
+        .collect::<Vec<_>>();
     let trait_impl = impl_wrapper(&ident, &module);
     (original.to_string() + &trait_impl.to_string())
         .parse()
@@ -25,6 +37,10 @@ fn impl_wrapper(ident: &Option<syn::Ident>, module: &syn::ItemMod) -> TokenStrea
 #[proc_macro]
 pub fn library(item: TokenStream) -> TokenStream {
     library_macro(item)
+}
+#[proc_macro_attribute]
+pub fn erase(attr: TokenStream, item: TokenStream) -> TokenStream {
+    quote! {}.into()
 }
 enum Part {
     Function(ItemFn),
@@ -50,7 +66,19 @@ fn library_macro(item: TokenStream) -> TokenStream {
         .collect::<Vec<_>>();
     "".parse().unwrap()
 }
-fn generate_impl(ident: Ident, parts: Vec<Part>) -> TokenStream {
+fn generate_enum(ident: Ident, parts: &[Part]) -> TokenStream {
+    let idents = parts.iter().map(|part| match part {
+        Part::Function(function) => function.sig.ident.to_owned(),
+        Part::Import(ident) => ident.to_owned(),
+    });
+    quote! {
+        #ident {
+            #(#idents),*
+        }
+    }
+    .into()
+}
+fn generate_impl(ident: &Ident, parts: &[Part]) -> TokenStream {
     let mut namespace = ident.clone().to_string();
     if !namespace.is_ascii() {
         panic!("non ascii ident");
@@ -60,16 +88,18 @@ fn generate_impl(ident: Ident, parts: Vec<Part>) -> TokenStream {
         .expect("0 length ident!?")
         .make_ascii_uppercase();
 
-    let mut arg_counts = parts.iter().map(|part| match part {
-        Part::Function(function) => function.sig.inputs.len().to_string(),
-        Part::Import(ident) => format!("{}::MAX_ARGS", ident.to_string()),
-    });
-    let ifs = arg_counts.map(|count| {
-        quote! {
-            __interal_temp = #count;
-            if __internal_temp > __internal_max { __internal_max = __internal_temp}
-        }
-    });
+    let ifs = parts
+        .iter()
+        .map(|part| match part {
+            Part::Function(function) => function.sig.inputs.len().to_string(),
+            Part::Import(ident) => format!("{}::MAX_ARGS", ident),
+        })
+        .map(|count| {
+            quote! {
+                __interal_temp = #count;
+                if __internal_temp > __internal_max { __internal_max = __internal_temp}
+            }
+        });
     let max_args = quote! {
         {
             let mut __internal_temp = 0;
@@ -78,9 +108,38 @@ fn generate_impl(ident: Ident, parts: Vec<Part>) -> TokenStream {
             __internal_max
         }
     };
-    let stream = quote! {
 
+    let idents = parts.iter().map(|part| match part {
+        Part::Function(function) => function.sig.ident.to_owned(),
+        Part::Import(ident) => ident.to_owned(),
+    });
+    let strings = idents.clone().map(|ident| ident.to_string());
+
+    let stream = quote! {
+        impl<#ident> crate::library::Library<#ident> for #ident {
+            const NAMESPACE: &'static str = #namespace;
+            const MAX_ARGS: usize = #max_args;
+            fn from_string(namespaces: &[&str], identifier: &str) -> Result<#ident, crate::error::Error> {
+                match namespaces {
+                    [namespace, ..] => match *namespace {
+                        Self::NAMESPACE => Self::from_string(&namespaces[1..], identifier),
+                        _ => Err(crate::error::Error::InvalidNamespace),
+                    }
+                    [] => match identifier {
+                        #(#strings => Ok(#idents)),*
+                        _ => Err(crate::error::Error::UnknownFunction),
+                    }
+                }
+            }
+            fn call(&self, args: &[crate::value::Value]) -> Result<crate::value::Value, crate::error::Error> {
+                todo!()
+            }
+            fn is_const(&self) -> bool {
+                false
+            }
+        }
     };
+    stream.into()
 }
 fn impl_library(ident: &Option<syn::Ident>, module: &syn::ItemMod) -> TokenStream {
     let ident = ident
