@@ -28,8 +28,4 @@ fn main() {
     let a = TryInto::<i16>::try_into(2_u8);
     //library::std::test_print();
     //call_with!(test_fn, array, i32, i32);
-    let a = Test::testy;
-}
-#[dyneval_derive::erase]
-fn test(amogms: sus) -> TTTT {
 }
