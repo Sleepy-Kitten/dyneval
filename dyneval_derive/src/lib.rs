@@ -1,5 +1,8 @@
 extern crate proc_macro;
+mod generate;
+mod part;
 
+use part::PartInternal;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, TokenStreamExt};
@@ -19,8 +22,8 @@ pub fn library_from_mod(attr: TokenStream, item: TokenStream) -> TokenStream {
     let parts = content
         .iter()
         .map(|item| match item {
-            Item::Fn(item_fn) => Part::Function(item_fn.to_owned()),
-            Item::Verbatim(tt) => Part::Import(
+            Item::Fn(item_fn) => PartInternal::Function(item_fn.to_owned()),
+            Item::Verbatim(tt) => PartInternal::Import(
                 syn::parse::<Ident>(tt.to_owned().into()).expect("not an ident or a function"),
             ),
             _ => todo!(),
@@ -34,18 +37,10 @@ pub fn library_from_mod(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
     .into()
 }
-#[proc_macro]
-pub fn library_from_func(item: TokenStream) -> TokenStream {
-    let parts = item
-} 
-enum Part {
-    Function(ItemFn),
-    Import(Ident),
-}
-fn generate_enum(ident: &Ident, parts: &[Part]) -> TokenStream {
+fn generate_enum(ident: &Ident, parts: &[PartInternal]) -> TokenStream {
     let idents = parts.iter().map(|part| match part {
-        Part::Function(function) => function.sig.ident.to_owned(),
-        Part::Import(ident) => ident.to_owned(),
+        PartInternal::Function(function) => function.sig.ident.to_owned(),
+        PartInternal::Import(ident) => ident.to_owned(),
     });
     quote! {
         #[allow(non_camel_case_types)]
@@ -55,7 +50,7 @@ fn generate_enum(ident: &Ident, parts: &[Part]) -> TokenStream {
     }
     .into()
 }
-fn generate_impl(ident: &Ident, parts: &[Part]) -> TokenStream {
+fn generate_impl(ident: &Ident, parts: &[PartInternal]) -> TokenStream {
     let namespace = ident.to_string().to_ascii_lowercase();
     if !namespace.is_ascii() {
         panic!("non ascii ident");
@@ -63,14 +58,14 @@ fn generate_impl(ident: &Ident, parts: &[Part]) -> TokenStream {
     let ifs = parts
         .iter()
         .map(|part| match part {
-            Part::Function(function) => function
+            PartInternal::Function(function) => function
                 .sig
                 .inputs
                 .len()
                 .to_string()
                 .parse::<TokenStream2>()
                 .unwrap(),
-            Part::Import(ident) => format!("{}::MAX_ARGS", ident)
+            PartInternal::Import(ident) => format!("{}::MAX_ARGS", ident)
                 .parse::<TokenStream2>()
                 .unwrap(),
         })
@@ -90,8 +85,8 @@ fn generate_impl(ident: &Ident, parts: &[Part]) -> TokenStream {
     };
 
     let idents = parts.iter().map(|part| match part {
-        Part::Function(function) => function.sig.ident.to_owned(),
-        Part::Import(ident) => ident.to_owned(),
+        PartInternal::Function(function) => function.sig.ident.to_owned(),
+        PartInternal::Import(ident) => ident.to_owned(),
     });
     let strings = idents.clone().map(|ident| ident.to_string());
 
