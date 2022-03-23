@@ -2,15 +2,12 @@ extern crate proc_macro;
 mod generate;
 mod part;
 
-use part::PartInternal;
+use part::{Part, PartInternal, Variant};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, TokenStreamExt};
 use std::fmt::Write;
-use syn::{
-    self,
-    Ident, Item, ItemFn, ItemMod, ItemType, Token,
-};
+use syn::{self, Ident, Item, ItemFn, ItemMod, ItemType, Token};
 
 #[proc_macro_attribute]
 pub fn library_from_mod(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -29,7 +26,12 @@ pub fn library_from_mod(attr: TokenStream, item: TokenStream) -> TokenStream {
             _ => todo!(),
         })
         .collect::<Vec<_>>();
-    let enumeration: TokenStream2 = generate_enum(&ident, &parts).into();
+    let variants = parts
+        .iter()
+        .cloned()
+        .map(|part| part.into())
+        .collect::<Vec<_>>();
+    let enumeration: TokenStream2 = generate_enum(&ident, &variants).into();
     let implementation: TokenStream2 = generate_impl(&ident, &parts).into();
     quote! {
         #enumeration
@@ -37,15 +39,11 @@ pub fn library_from_mod(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
     .into()
 }
-fn generate_enum(ident: &Ident, parts: &[PartInternal]) -> TokenStream {
-    let idents = parts.iter().map(|part| match part {
-        PartInternal::Function(function) => function.sig.ident.to_owned(),
-        PartInternal::Import(ident) => ident.to_owned(),
-    });
+fn generate_enum(ident: &Ident, parts: &[Part<Variant>]) -> TokenStream {
     quote! {
         #[allow(non_camel_case_types)]
         pub enum #ident {
-            #(#idents),*
+            #(#parts),*
         }
     }
     .into()
@@ -55,6 +53,7 @@ fn generate_impl(ident: &Ident, parts: &[PartInternal]) -> TokenStream {
     if !namespace.is_ascii() {
         panic!("non ascii ident");
     }
+
     let ifs = parts
         .iter()
         .map(|part| match part {
