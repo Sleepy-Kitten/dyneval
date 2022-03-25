@@ -1,4 +1,9 @@
-use std::{num::{ParseFloatError, ParseIntError, TryFromIntError}, array::TryFromSliceError, str::ParseBoolError, convert::Infallible};
+use std::{
+    array::TryFromSliceError,
+    convert::Infallible,
+    num::{ParseFloatError, ParseIntError, TryFromIntError},
+    str::ParseBoolError,
+};
 
 #[derive(Debug)]
 pub enum Error {
@@ -7,7 +12,7 @@ pub enum Error {
     NoIdentifierMatch,
     InvalidToken,
     InvalidNamespace,
-    InvalidArgs,
+    InvalidArg,
     InvalidIndex,
     InvalidVariable,
     InvalidType,
@@ -35,12 +40,12 @@ impl From<ParseBoolError> for Error {
 
 impl From<TryFromSliceError> for Error {
     fn from(_: TryFromSliceError) -> Self {
-        Self::InvalidArgs
+        Self::InvalidArg
     }
 }
 impl From<TryFromIntError> for Error {
     fn from(_: TryFromIntError) -> Self {
-        Self::InvalidArgs
+        Self::InvalidArg
     }
 }
 impl From<Infallible> for Error {

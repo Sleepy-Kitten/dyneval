@@ -16,21 +16,15 @@ fn print(values: [Value; 1]) -> Result<Value, Error> {
     println!("{value}");
     Ok(value)
 }
-#[dyneval_derive::library_from_mod]
-pub mod Test {
-    Why
-    fn nya(a: i64) -> crate::value::Value {
-        crate::value::Value::Int(a)
-    }
-    fn b(a: f64, b: i64) -> crate::value::Value {
-        todo!()
-    }
-    pub fn c() {
-
-    }
-}
-fn something() {
-    let a = Test::nya;
+pub enum Test {}
+use crate::library::Library;
+library! {
+    Std; [];
+    [
+        fn print(num: i64) -> Result<Value, Error> {
+            todo!()
+        },
+    ]
 }
 /*
 functions!(
