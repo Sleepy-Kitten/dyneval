@@ -21,6 +21,6 @@ where
     Variable(VariableIndex),
     Function {
         function: T,
-        args: SmallVec<[usize; T::MAX_ARGS]>,
+        args: SmallVec<[ElementIndex; T::MAX_ARGS]>,
     },
 }

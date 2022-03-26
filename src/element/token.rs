@@ -1,3 +1,7 @@
+use std::ops::{Add, Div, Mul, Rem, Sub};
+
+use crate::value::Value;
+
 #[derive(Debug, Clone)]
 pub(crate) struct Token {
     token_kind: TokenKind,
@@ -100,6 +104,7 @@ pub(crate) enum Identifier {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Special {
+    NamespacePartial,
     Namespace,
     NegZero,
     Comma,
@@ -148,6 +153,27 @@ impl Operator {
             Self::GEq => 9,
             Self::Lt => 10,
             Self::LEq => 11,
+        }
+    }
+    pub(crate) fn eval(&self, lhs: Value, rhs: Value) -> Value {
+        match (lhs, rhs) {
+            (Value::Float(lhs), Value::Float(rhs)) => Value::Float(self.eval_generic(lhs, rhs)),
+            (Value::Int(lhs), Value::Int(rhs)) => Value::Int(self.eval_generic(lhs, rhs)),
+            _ => unreachable!(),
+        }
+    }
+    fn eval_generic<T>(self, lhs: T, rhs: T) -> T
+    where
+        T: Add<Output = T> + Sub<Output = T> + Mul<Output = T> + Div<Output = T> + Rem<Output = T>,
+    {
+        match self {
+            Self::Add => lhs + rhs,
+            Self::Sub => lhs - rhs,
+            Self::Mul => lhs * rhs,
+            Self::Div => lhs / rhs,
+            Self::Rem => lhs % rhs,
+            Self::Pow => todo!(),
+            _ => todo!(),
         }
     }
 }

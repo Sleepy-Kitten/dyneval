@@ -17,6 +17,7 @@ pub enum Error {
     InvalidVariable,
     InvalidType,
     NotCompiled,
+
     AlreadyCompiled,
     EmptyExpression,
     UnknownFunction,

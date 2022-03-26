@@ -9,7 +9,7 @@ pub mod token;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct ElementIndex(usize);
+pub struct ElementIndex(pub(crate) usize);
 impl ElementIndex {
     pub(crate) fn new(index: usize) -> Self {
         Self(index)

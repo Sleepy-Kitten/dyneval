@@ -1,6 +1,10 @@
+use smallvec::SmallVec;
+
 use crate::{
-    element::{Element, ElementIndex},
+    element::{node::Node, Element, ElementIndex},
+    error::Error,
     library::Library,
+    value::Value,
     variables::Variables,
 };
 
@@ -26,6 +30,15 @@ where
             elements: Default::default(),
             variables: Default::default(),
         }
+    }
+}
+impl<T> ExpressionStorage<T>
+where
+    T: Library<T>,
+    [(); T::MAX_ARGS]:,
+{
+    pub(crate) fn get_element(&self, index: ElementIndex) -> &Element<T> {
+        &self.elements[index.0]
     }
 }
 
@@ -68,6 +81,35 @@ where
         Self {
             string: expression,
             ..Default::default()
+        }
+    }
+    pub fn set_expression(&mut self, expression: String) {
+        self.string = expression;
+    }
+    pub fn eval(&self) -> Result<Value, Error> {
+        match self.root {
+            Some(index) => self.eval_recursive(index),
+            None => Err(Error::NotCompiled),
+        }
+    }
+    fn eval_recursive(&self, index: ElementIndex) -> Result<Value, Error> {
+        if let Element::Node(n) = &self.storage.get_element(index) {
+            Ok(match n {
+                Node::Instruction { operator, lhs, rhs } => {
+                    operator.eval(self.eval_recursive(*lhs)?, self.eval_recursive(*rhs)?)
+                }
+                Node::Literal(value) => *value,
+                Node::Variable(index) => self.storage.variables.get(*index),
+                Node::Function { function, args } => {
+                    let mut args_eval = SmallVec::<[Value; T::MAX_ARGS]>::new();
+                    for arg in args.iter() {
+                        args_eval.push(self.eval_recursive(*arg)?);
+                    }
+                    function.call(&args_eval)?
+                }
+            })
+        } else {
+            Err(Error::InvalidIndex)
         }
     }
 }

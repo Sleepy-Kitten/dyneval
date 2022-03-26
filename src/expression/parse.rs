@@ -1,11 +1,17 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt::Debug};
 
 use smallvec::SmallVec;
 
 use crate::{
     element::{
         node::Node,
-        token::{Special::Comma, TokenKind::*, Literal::*, Identifier::*, Special::*},
+        token::{
+            Identifier::{self, *},
+            Literal::*,
+            Special::Comma,
+            Special::*,
+            TokenKind::*,
+        },
         Element, ElementIndex,
     },
     error::Error,
@@ -15,6 +21,7 @@ use crate::{
 
 use super::Expression;
 
+#[derive(Debug)]
 struct NodeInfo<'a, T>
 where
     T: Library<T>,
@@ -24,6 +31,7 @@ where
     node: &'a mut Node<T>,
     weight: i16,
 }
+#[derive(Debug)]
 struct IndexWeight {
     weight: i16,
     index: ElementIndex,
@@ -35,7 +43,7 @@ impl IndexWeight {
         T: Library<T>,
         [(); T::MAX_ARGS]:,
     {
-        if self.weight >= other.weight {
+        if other.weight <= self.weight {
             self.weight = other.weight;
             self.index = other.index;
         }
@@ -48,14 +56,14 @@ where
     [(); T::MAX_ARGS]:,
 {
     /// lexes the [`Expression`] string into [`Token`]s
-    fn to_tokens(&mut self) -> Result<&mut Self, Error> {
+    pub(crate) fn to_tokens(&mut self) -> Result<&mut Self, Error> {
         for (index, &chr) in self.string.as_bytes().iter().enumerate() {
             self.storage.push(index, chr)?;
         }
         Ok(self)
     }
     /// parses the [`Token`]s into [`Node`]s, containing actual data
-    fn to_nodes(&mut self) -> Result<&mut Self, Error> {
+    pub(crate) fn to_nodes(&mut self) -> Result<&mut Self, Error> {
         let mut namespaces = SmallVec::<[&str; 4]>::new();
         for element in &mut self.storage.elements {
             match element {
@@ -75,7 +83,7 @@ where
                             rhs: ElementIndex::new(0),
                         })
                     }
-                    Identifier(Library) => {
+                    Identifier(Identifier::Function) => {
                         let identifier = token.slice(&self.string);
                         let function = <T as Library<T>>::from_string(&namespaces, identifier)?;
                         *element = Element::Node(Node::Function {
@@ -85,8 +93,9 @@ where
                     }
                     Bracket(_) | Special(Comma) => (),
                     Special(Namespace) => namespaces.push(token.slice(&self.string)),
+                    Special(NamespacePartial) => return Err(Error::UnexpectedToken),
                     Special(NegZero) => *element = Element::Node(Node::Literal(Value::Int(0))),
-                    Identifier(Variable) => {
+                    Identifier(Identifier::Variable) => {
                         let identifier = token.slice(&self.string);
                         let index = self.storage.variables.find_or_set(identifier);
                         *element = Element::Node(Node::Variable(index))
@@ -99,10 +108,10 @@ where
         Ok(self)
     }
     /// Set the left and right [`ElementIndex`] for each operator [`Node`]
-    fn set_indices(&mut self) -> Result<&mut Self, Error> {
+    pub(crate) fn set_indices(&mut self) -> Result<&mut Self, Error> {
         // index and weight node with the lowest weight
         let mut lowest_weight = IndexWeight {
-            weight: 0,
+            weight: i16::MAX,
             index: ElementIndex::new(0),
         };
         let mut bracket_weight = 0;
@@ -179,5 +188,11 @@ where
         }
         self.root = Some(lowest_weight.index);
         Ok(self)
+    }
+    pub fn compile(&mut self) -> Result<(), Error> {
+        self.to_tokens()?;
+        self.to_nodes()?;
+        self.set_indices()?;
+        Ok(())
     }
 }

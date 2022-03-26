@@ -5,7 +5,7 @@ use smallvec::SmallVec;
 use crate::{small_string::SmallString, value::Value};
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-pub struct VariableIndex(usize);
+pub struct VariableIndex(pub(crate) usize);
 #[derive(Debug, Default, Clone)]
 pub(crate) struct Variables {
     identifiers: HashMap<SmallString<16>, usize>,
@@ -37,5 +37,8 @@ impl Variables {
             }
         };
         VariableIndex(index)
+    }
+    pub(crate) fn get(&self, index: VariableIndex) -> Value {
+        self.values[index.0]
     }
 }

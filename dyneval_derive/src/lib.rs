@@ -1,6 +1,4 @@
 extern crate proc_macro;
-mod generate;
-mod part;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
@@ -55,6 +53,7 @@ impl MacroInput {
         let variants = imports.chain(functions);
         quote! {
             #[allow(non_camel_case_types)]
+            #[derive(Clone, Debug)]
             pub enum #name {
                 #(#variants),*
             }

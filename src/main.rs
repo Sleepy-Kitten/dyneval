@@ -1,7 +1,8 @@
 #![feature(generic_const_exprs)]
 #![feature(try_blocks)]
 
-use library::Library;
+use expression::Expression;
+use library::{Library, std::Std};
 
 extern crate dyneval_derive;
 //use library::std::test_print;
@@ -20,14 +21,13 @@ mod tests {
         assert_eq!(result, 4);
     }
 }
-fn test_fn(a: u32, b: i32) {
-    println!("a{a}, b{b}")
-}
+
 fn main() {
-    dbg!(crate::library::std::Std::NAMESPACE);
-    let array: [i8; 2] = [-11, 2];
-    //let temp = test_fn(access_array!(array, u8, u8));
-    let a = TryInto::<i16>::try_into(2_u8);
-    //library::std::test_print();
-    //call_with!(test_fn, array, i32, i32);
+    let mut expression = Expression::<Std>::new("1+print(1)".to_owned());
+    expression.to_tokens().unwrap();
+    expression.to_nodes().unwrap();
+    expression.set_indices().unwrap();
+    dbg!(&expression);
+    dbg!(expression.eval());
+    return ();
 }

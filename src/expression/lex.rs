@@ -2,7 +2,7 @@ use crate::{
     element::{
         token::{
             Bracket::*, Identifier::*, Literal::*, Operator::*, Special::*, Token, TokenKind,
-            TokenKind::*,
+            TokenKind::*, self,
         },
         Element,
     },
@@ -63,14 +63,15 @@ where
                 match (chr, kind) {
                     // special
                     (b' ', _) => (),
-                    (b':', Identifier(_)) => token.set_kind(Namespace),
+                    (b':', Identifier(_)) => token.set_kind(NamespacePartial),
+                    (b':', Special(token::Special::NamespacePartial)) => token.set_kind(Namespace),
                     // literal, variable
                     (b'.', Literal(Int)) => token.set_inc(Float),
                     (b'.', _) => self.token_from(Float, index),
                     (b'0'..=b'9', Identifier(_) | Literal(_)) => token.inc_end(),
-                    (b'0'..=b'9', _) => self.token_from(Variable, index),
+                    (b'0'..=b'9', _) => self.token_from(Int, index),
                     (b'a'..=b'z' | b'A'..=b'Z', Identifier(_)) => token.inc_end(),
-                    (b'a'..=b'z' | b'A'..=b'Z', _) => self.token_from(Float, index),
+                    (b'a'..=b'z' | b'A'..=b'Z', _) => self.token_from(Variable, index),
                     // function
                     (b'(', Identifier(_)) => {
                         token.set_kind(Function);
