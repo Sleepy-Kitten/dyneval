@@ -189,6 +189,93 @@ where
         self.root = Some(lowest_weight.index);
         Ok(self)
     }
+
+    pub(crate) fn set_function_args(&mut self) -> Result<(), Error> {
+        for element in &mut self.storage.elements {
+            match element {
+                Element::Node(node) => match node {
+                    Node::Instruction { operator, lhs, rhs } => todo!(),
+                    Node::Literal(_) => todo!(),
+                    Node::Variable(_) => todo!(),
+                    Node::Function { function, args } => todo!(),
+                },
+                _ => (),
+            }
+        }
+        Ok(())
+    }
+    /*
+    pub(crate) fn set_function_args_broken(&mut self) -> Result<(), Error> {
+        let mut index = 0;
+        while index < self.elements.len() {
+            let element = &self.elements[index];
+            // skip until element is a function
+            if let ParseElement::Node(Node::Function { .. }) = element {
+                let mut lowest_weight = IndexedWeight {
+                    weight: i16::MAX,
+                    index: 0,
+                };
+                let function_index = index;
+                while index < self.elements.len() {
+                    let element = &self.elements[index];
+                    match element {
+                        ParseElement::Node(
+                            Node::Literal(_) | Node::Variable { .. } | Node::Function { .. },
+                        ) if lowest_weight.weight == i16::MAX
+                            && match &self.elements[index + 1] {
+                                ParseElement::Token(token) => match token.kind() {
+                                    TokenKind::Bracket(Bracket::Closed) => true,
+                                    TokenKind::Special(Special::Comma) => true,
+                                    _ => false,
+                                },
+                                _ => false,
+                            } =>
+                        {
+                            if let ParseElement::Node(Node::Function { args, .. }) =
+                                &mut self.elements[function_index]
+                            {
+                                lowest_weight.index = index;
+                            }
+                        }
+                        // if element is instruction update weight and index
+                        ParseElement::Node(Node::Instruction { operator, .. }) => {
+                            if lowest_weight.weight >= operator.weight() {
+                                lowest_weight.weight = operator.weight();
+                                lowest_weight.index = index;
+                            }
+                        }
+                        ParseElement::Token(token) => match token.kind() {
+                            // if element is comma add last lowest index to args and reset weight
+                            TokenKind::Special(Special::Comma) => {
+                                if let ParseElement::Node(Node::Function { args, .. }) =
+                                    &mut self.elements[function_index]
+                                {
+                                    args.push(lowest_weight.index);
+                                    lowest_weight.weight = i16::MAX;
+                                }
+                            }
+                            // if element is bracket add last lowest index to args and break
+                            TokenKind::Bracket(Bracket::Closed) => {
+                                if let ParseElement::Node(Node::Function { args, .. }) =
+                                    &mut self.elements[function_index]
+                                {
+                                    args.push(lowest_weight.index);
+                                    break;
+                                }
+                            }
+                            _ => {}
+                        },
+                        _ => (),
+                    }
+                    index += 1;
+                }
+            }
+            index += 1;
+        }
+        Ok(())
+    }
+    */
+
     pub fn compile(&mut self) -> Result<(), Error> {
         self.to_tokens()?;
         self.to_nodes()?;
