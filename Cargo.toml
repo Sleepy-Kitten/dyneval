@@ -5,9 +5,6 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[features]
-unsafe_eval = []
-
 [dependencies.dyneval_derive]
 path = "dyneval_derive"
 
@@ -15,8 +12,11 @@ path = "dyneval_derive"
 version = "1.8.0"
 features = ["const_generics"]
 
-[dependencies.libc]
-version = "0.2.119"
-
 [dependencies.nom]
 version = "7.1.1"
+
+[profile.dev]
+incremental = true
+
+[profile.release]
+incremental = true

@@ -11,6 +11,7 @@ use crate::{
 pub mod lex;
 pub mod parse;
 mod parse_nom;
+mod parse_mixed;
 
 #[derive(Debug, Clone)]
 pub struct ExpressionStorage<T>
@@ -40,6 +41,11 @@ where
 {
     pub(crate) fn get_element(&self, index: ElementIndex) -> &Element<T> {
         &self.elements[index.0]
+    }
+    pub(crate) fn push_node(&mut self, node: Node<T>) -> ElementIndex {
+        let index = self.elements.len();
+        self.elements.push(Element::Node(node));
+        ElementIndex(index)
     }
 }
 

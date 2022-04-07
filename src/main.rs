@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![feature(try_blocks)]
+#![feature(option_result_contains)]
 
 use expression::Expression;
 use library::{Library, std::Std};
