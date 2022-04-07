@@ -10,6 +10,7 @@ use crate::{
 
 pub mod lex;
 pub mod parse;
+mod parse_nom;
 
 #[derive(Debug, Clone)]
 pub struct ExpressionStorage<T>

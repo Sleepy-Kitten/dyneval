@@ -192,14 +192,13 @@ where
 
     pub(crate) fn set_function_args(&mut self) -> Result<(), Error> {
         for element in &mut self.storage.elements {
-            match element {
-                Element::Node(node) => match node {
+            if let Element::Node(node) = element {
+                match node {
                     Node::Instruction { operator, lhs, rhs } => todo!(),
                     Node::Literal(_) => todo!(),
                     Node::Variable(_) => todo!(),
                     Node::Function { function, args } => todo!(),
-                },
-                _ => (),
+                }
             }
         }
         Ok(())

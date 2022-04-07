@@ -17,3 +17,6 @@ features = ["const_generics"]
 
 [dependencies.libc]
 version = "0.2.119"
+
+[dependencies.nom]
+version = "7.1.1"
