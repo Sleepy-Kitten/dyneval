@@ -55,3 +55,9 @@ impl From<Infallible> for Error {
         unreachable!()
     }
 }
+
+impl From<Option<Error>> for Error {
+    fn from(error: Option<Error>) -> Self {
+        error.unwrap_or(Error::InvalidToken)
+    }
+}

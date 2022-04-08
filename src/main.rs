@@ -1,13 +1,13 @@
 #![feature(generic_const_exprs)]
 #![feature(try_blocks)]
 #![feature(string_remove_matches)]
+#![feature(test)]
 
 use expression::Expression;
 use library::{std::Std, Library};
 
 extern crate dyneval_derive;
 //use library::std::test_print;
-pub mod element;
 pub mod error;
 pub mod expression;
 pub mod library;

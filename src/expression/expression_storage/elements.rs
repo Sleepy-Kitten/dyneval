@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 
 use crate::{
-    element::{node::Node, Element, ElementIndex},
+    expression::element::{ElementIndex, Node},
     library::Library,
 };
 #[derive(Debug, Clone)]
@@ -22,6 +22,10 @@ where
         let index = self.elements.len();
         self.elements.push(node.into());
         ElementIndex(index)
+    }
+
+    pub fn clear(&mut self) {
+        self.elements.clear()
     }
 }
 impl<T> Index<ElementIndex> for Elements<T>

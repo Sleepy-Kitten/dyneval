@@ -129,12 +129,12 @@ impl MacroInput {
 
                 fn from_string(namespaces: &[&str], identifier: &str) -> Result<#name, Error> {
                     match namespaces {
-                        [namespace, rest @ ..] => match namespace {
-                            #(#import_from_string)*
-                            _ => Err(Error::InvalidNamespace),
-                        }
                         [namespace] => match namespace {
                             &Self::NAMESPACE => Self::from_string(&[], identifier),
+                            _ => Err(Error::InvalidNamespace),
+                        }
+                        [namespace, rest @ ..] => match namespace {
+                            #(#import_from_string)*
                             _ => Err(Error::InvalidNamespace),
                         }
                         [] => match identifier {

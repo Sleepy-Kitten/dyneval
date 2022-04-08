@@ -14,6 +14,16 @@ where
     pub elements: Elements<T>,
     pub variables: Variables,
 }
+impl<T> ExpressionStorage<T>
+where
+    T: Library<T>,
+    [(); T::MAX_ARGS]:,
+{
+    pub(crate) fn clear(&mut self) {
+        self.elements.clear();
+        self.variables.clear();
+    }
+}
 impl<T> Default for ExpressionStorage<T>
 where
     T: Library<T>,
@@ -26,4 +36,3 @@ where
         }
     }
 }
-

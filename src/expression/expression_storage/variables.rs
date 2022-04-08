@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Index};
 
 use smallvec::SmallVec;
 
@@ -38,7 +38,12 @@ impl Variables {
         };
         VariableIndex(index)
     }
-    pub(crate) fn get(&self, index: VariableIndex) -> Value {
-        self.values[index.0]
+}
+impl Index<VariableIndex> for Variables {
+    type Output = Value;
+
+    fn index(&self, index: VariableIndex) -> &Self::Output {
+        let index = index.0;
+        &self.values[index]
     }
 }

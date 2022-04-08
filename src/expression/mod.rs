@@ -2,24 +2,13 @@ use std::ops::Index;
 
 use smallvec::SmallVec;
 
-use crate::{
-    element::{
-        node::{Function, Instruction, Node},
-        Element, ElementIndex,
-    },
-    error::Error,
-    library::Library,
-    value::Value,
-};
+use crate::{error::Error, expression::element::ElementIndex, library::Library, value::Value};
 
 use self::expression_storage::{variables::Variables, ExpressionStorage};
 
-//pub mod lex;
-//pub mod parse;
-pub mod expression_storage;
-mod parse_mixed;
-mod parse_nom;
-
+mod element;
+pub(crate) mod expression_storage;
+mod parse;
 /// An `Expression` which stores the original expression string and the compiled version of that string.
 /// This allows the expression to be evaluated multiple times without the overhead of being parsed again
 ///
@@ -55,7 +44,7 @@ where
     T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
-    pub fn new(mut expression:  String) -> Self {
+    pub fn new(mut expression: String) -> Self {
         expression.remove_matches(' ');
         Self {
             string: expression,
@@ -73,14 +62,6 @@ where
         }
         */
         todo!()
-    }
-    pub fn parse_nom(&mut self) -> Result<(), Error> {
-        dbg!(self.storage.parse_expression_delimited(&self.string));
-        Ok(())
-    }
-    pub fn parse_mixed(&mut self) -> Result<(), Error> {
-        self.storage.parse_expression_mixed(self.string.as_bytes());
-        Ok(())
     }
     /*
     fn eval_recursive(&self, index: ElementIndex) -> Result<Value, Error> {
