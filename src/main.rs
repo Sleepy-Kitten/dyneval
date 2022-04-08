@@ -1,9 +1,9 @@
 #![feature(generic_const_exprs)]
 #![feature(try_blocks)]
-#![feature(option_result_contains)]
+#![feature(string_remove_matches)]
 
 use expression::Expression;
-use library::{Library, std::Std};
+use library::{std::Std, Library};
 
 extern crate dyneval_derive;
 //use library::std::test_print;
@@ -13,7 +13,6 @@ pub mod expression;
 pub mod library;
 mod small_string;
 pub mod value;
-pub mod variables;
 #[cfg(test)]
 mod tests {
     #[test]
@@ -25,9 +24,6 @@ mod tests {
 
 fn main() {
     let mut expression = Expression::<Std>::new("1+print(1)".to_owned());
-    expression.to_tokens().unwrap();
-    expression.to_nodes().unwrap();
-    expression.set_indices().unwrap();
     dbg!(&expression);
     dbg!(expression.eval());
     return ();

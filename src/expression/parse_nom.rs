@@ -9,30 +9,23 @@ use nom::{
 use smallvec::SmallVec;
 
 use crate::{
-    element::{node::Node, token::Operator, Element, ElementIndex},
+    element::{
+        node::{Function, Instruction, Node},
+        token::Operator,
+        Element, ElementIndex,
+    },
     error::Error,
     library::{std::Std, Library},
     value::Value,
 };
 
 use super::{Expression, ExpressionStorage};
-impl<T> Expression<T>
-where
-    T: Library<T>,
-    [(); T::MAX_ARGS]:,
-{
-    pub fn parse_nom(&mut self) -> Result<(), Error> {
-        dbg!(self.storage.parse_expression_delimited(&self.string));
-        Ok(())
-    }
-}
 impl<'a, 'b, T> ExpressionStorage<T>
 where
     T: Library<T>,
     [(); T::MAX_ARGS]:,
 {
-    
-    fn parse_expression_delimited(&'a mut self, input: &'b str) -> IResult<&'b str, ElementIndex> {
+    pub(crate) fn parse_expression_delimited(&'a mut self, input: &'b str) -> IResult<&'b str, ElementIndex> {
         let expression = |i| self.parse_expression_delimited(i);
 
         let result = delimited(char('('), expression, char(')')).parse(input);
@@ -70,12 +63,12 @@ where
             char('^').map(|_| Operator::Pow),
         ))(input)?;
 
-        let node = Node::Instruction {
+        let instruction = Instruction {
             operator,
             lhs: ElementIndex(0),
             rhs: ElementIndex(0),
         };
-        let index = self.push_node(node);
+        let index = self.elements.push_node(instruction);
 
         Ok((input, index))
     }
@@ -90,7 +83,7 @@ where
         let index = self.variables.find_or_set(ident);
         let node = Node::Variable(index);
 
-        let index = self.push_node(node);
+        let index = self.elements.push_node(node);
         Ok((input, index))
     }
     fn function(&'a mut self, input: &'b str) -> IResult<&'b str, ElementIndex> {
@@ -101,21 +94,18 @@ where
             delimited(char('('), separated_list0(char(','), expression), char(')')),
         )(input)?;
 
-        let node = Node::Function {
+        let function = Function {
             function: T::from_string(&[], ident).unwrap(),
             args: SmallVec::from_vec(args),
         };
 
-        let index = self.push_node(node);
+        let index = self.elements.push_node(function);
         Ok((input, index))
     }
     fn literal(&'a mut self, input: &'b str) -> IResult<&'b str, ElementIndex> {
-        let (input, node) = map(
-            alt((i64.map(Value::Int), f64.map(Value::Float))),
-            Node::Literal,
-        )(input)?;
+        let (input, value) = alt((i64.map(Value::Int), f64.map(Value::Float)))(input)?;
 
-        let index = self.push_node(node);
+        let index = self.elements.push_node(value);
         Ok((input, index))
     }
 }
