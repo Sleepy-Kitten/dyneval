@@ -86,34 +86,43 @@ where
     [(); T::MAX_ARGS]:,
 {
     fn parse(&'a mut self, input: &'b [u8]) -> Result<ElementIndex, Error> {
-        let (_, result) = self.parse_expression_delimited(input, 0)?;
+        let (_, result) = self.parse_expression_delimited(input, Default::default())?;
         Ok(result.index)
     }
 
-    fn parse_expression_delimited(&'a mut self, input: &'b [u8], brackets: i16) -> ParseResult<'b> {
+    fn parse_expression_delimited(
+        &'a mut self,
+        input: &'b [u8],
+        mut weight: IndexWeight,
+    ) -> ParseResult<'b> {
         if let Some(b'(') = input.first() {
             let input = &input[1..];
-
-            let (input, index) = self.parse_expression_delimited(input, brackets + 1)?;
+            weight.brackets += 1;
+            let (input, mut index) = self.parse_expression_delimited(input, weight)?;
 
             if let Some(b')') = input.first() {
                 let input = &input[1..];
+                index.brackets -= 1;
                 Ok((input, index))
             } else {
                 Err(Some(Error::UnbalancedBracket))
             }
         } else {
-            self.parse_expression_partial(input, brackets)
+            self.parse_expression_partial(input, weight)
         }
     }
-    fn parse_expression_partial(&'a mut self, input: &'b [u8], brackets: i16) -> ParseResult<'b> {
-        let (input, operand) = self.parse_operand(input, brackets)?;
+    fn parse_expression_partial(
+        &'a mut self,
+        input: &'b [u8],
+        weight: IndexWeight,
+    ) -> ParseResult<'b> {
+        let (input, operand) = self.parse_operand(input, weight)?;
         let result = self.parse_operator(input);
         result
             .and_then(|(input, operator)| {
-                let (input, expression) = self.parse_expression_delimited(input, brackets)?;
+                let (input, expression) = self.parse_expression_delimited(input, operator)?;
 
-                let index = operator.lower(expression);
+                let index = weight.lower(expression);
 
                 let instruction = self.elements[operator.index].as_mut_instruction();
                 instruction.lhs = operand.index;
@@ -121,7 +130,8 @@ where
 
                 Ok((input, index))
             })
-            .if_recoverable(|| self.parse_expression_delimited(input, brackets))
+            .if_recoverable(|| self.parse_expression_delimited(input, weight))
+            .if_recoverable(|| Ok((input, operand)))
     }
     fn parse_operator(&'a mut self, input: &'b [u8]) -> ParseResult<'b> {
         if let Some(operator) = input.get(0) {
@@ -144,12 +154,12 @@ where
             index.weight = operator.weight();
             Ok((input, index))
         } else {
-            Err(Some(Error::InvalidToken))
+            Err(None)
         }
     }
-    fn parse_operand(&'a mut self, input: &'b [u8], brackets: i16) -> ParseResult<'b> {
+    fn parse_operand(&'a mut self, input: &'b [u8], weight: IndexWeight) -> ParseResult<'b> {
         self.parse_literal(input)
-            .if_recoverable(|| self.parse_function(input, brackets))
+            .if_recoverable(|| self.parse_function(input, weight))
             .if_recoverable(|| self.parse_identifier(input))
     }
     fn parse_literal(&'a mut self, input: &'b [u8]) -> ParseResult<'b> {
@@ -204,7 +214,7 @@ where
             Err(err) => Err(err),
         }
     }
-    fn parse_function(&'a mut self, mut input: &'b [u8], brackets: i16) -> ParseResult<'b> {
+    fn parse_function(&'a mut self, mut input: &'b [u8], weight: IndexWeight) -> ParseResult<'b> {
         let mut namespaces = SmallVec::<[&str; 4]>::new();
 
         while let Ok((input_temp, namespace)) = namespace(input) {
@@ -222,7 +232,7 @@ where
                 let mut args = SmallVec::new();
 
                 let input = loop {
-                    let (input_temp, index) = self.parse_expression_delimited(input, brackets)?;
+                    let (input_temp, index) = self.parse_expression_delimited(input, weight)?;
                     input = input_temp;
                     args.push(index.index);
                     match input.first() {
@@ -274,13 +284,13 @@ fn parse() {
     let b = &a[0..=0];
     dbg!(Std::from_string(&["std"], "print"));
     dbg!(b);
-    let mut expression = Expression::<Std>::new(String::from("std::print(std::print(3))"));
+    let mut expression = Expression::<Std>::new(String::from("1+2^4*6"));
     dbg!(expression.parse());
     dbg!(&expression);
 }
 #[bench]
 fn bench_parse(b: &mut test::Bencher) {
-    let mut expression = Expression::<Std>::new(String::from("1*2+1^4"));
+    let mut expression = Expression::<Std>::new(String::from("1+2^4*6"));
     dbg!(expression.parse());
     dbg!(&expression);
     b.iter(|| {
